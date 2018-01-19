@@ -144,15 +144,15 @@ class CompressedReader(GenericReader):
 
     def readline(self):
         res = ""
-        while "\n" not in res:
+        while not len(res) or res[-1] != "\n":
             idx = self.buf.find("\n")
             if idx == -1:
                 res += self.buf
                 self.buf = ""
+                self._refill()
             else:
                 res += self.buf[0:idx+1]
                 self.buf = self.buf[idx+1:]
-            self._refill()
             if not len(self.buf) and self.eof:
                 break
         if not len(res) and not len(self.buf) and self.eof:
