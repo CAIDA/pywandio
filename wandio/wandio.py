@@ -122,16 +122,17 @@ class CompressedReader(GenericReader):
                 self.eof = True
                 return
 
-    def read(self, size):
+    def read(self, size=None):
         res = ""
-        while ((not self.eof) or len(self.buf)) and len(res) < size:
+        while ((not self.eof) or len(self.buf)) and (size is None or len(res) < size):
             if not len(self.buf):
                 self._refill()
-            toread = size-len(res)
+            toread = size-len(res) if size is not None else len(self.buf)
             res += self.buf[0:toread]
             self.buf = self.buf[toread:]
-        assert(len(res) <= size)
-        assert(len(res) == size or len(self.buf) == 0)
+        # TODO: remove these asserts
+        assert(size is None or len(res) <= size)
+        assert(size is None or len(res) == size or len(self.buf) == 0)
         return res
 
     def next(self):
