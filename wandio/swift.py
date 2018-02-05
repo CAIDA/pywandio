@@ -1,5 +1,5 @@
-import os
 import swiftclient
+import swiftclient.service
 import file
 
 
@@ -7,33 +7,18 @@ class SwiftReader(file.GenericReader):
 
     CHUNK_SIZE = 1*1024*1024
 
-    REQ_ENV = [
-        "OS_AUTH_URL",
-        "OS_USERNAME",
-        "OS_PASSWORD",
-        "OS_PROJECT_NAME",
-        "OS_IDENTITY_API_VERSION",
-    ]
+    DEFAULT_OPTIONS = {
+        "os_auth_url": "https://hermes-auth.caida.org",
+        "auth_version": "3",
+    }
 
-    def __init__(self, url):
+    def __init__(self, url, options=None):
         self.url = url
-        # check that the required environment variables have been set
-        for var in self.REQ_ENV:
-            if os.environ.get(var) is None:
-                raise ValueError("Missing Swift environment variable (%s)"
-                                 % var)
-        # check that the auth version is correct
-        if os.environ.get("OS_IDENTITY_API_VERSION") != "3":
-            raise NotImplementedError("FileOpener only supports "
-                                      "Swift Auth version 3")
 
-        self.conn = swiftclient.Connection(
-            authurl=os.environ.get("OS_AUTH_URL"),
-            user=os.environ.get("OS_USERNAME"),
-            key=os.environ.get("OS_PASSWORD"),
-            tenant_name=os.environ.get("OS_PROJECT_NAME"),
-            auth_version=os.environ.get("OS_IDENTITY_API_VERSION")
-        )
+        self.options = self._get_options(options)
+
+        self.conn = swiftclient.service.get_conn(self.options)
+
         url = self.url.replace("swift://", "")
         if url.find("/") == -1:
             raise ValueError("Swift url must be 'swift://container/object'")
@@ -43,6 +28,26 @@ class SwiftReader(file.GenericReader):
         (hdr, body) = self.conn.get_object(containername, objname,
                                            resp_chunk_size=self.CHUNK_SIZE)
         super(SwiftReader, self).__init__(body)
+
+    def _get_options(self, options):
+        # following is borrowed from swiftclient.service.SwiftService
+        default_opts = dict(
+            swiftclient.service._default_global_options,
+            **dict(
+                swiftclient.service._default_local_options,
+                **self.DEFAULT_OPTIONS
+            )
+        )
+        if options is not None:
+            options = dict(
+                default_opts,
+                **options
+            )
+        else:
+            options = default_opts
+        swiftclient.service.process_options(options)
+
+        return options
 
     def close(self):
         pass
