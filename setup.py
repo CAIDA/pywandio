@@ -14,6 +14,6 @@ setuptools.setup(
         'python-keystoneclient', 'python-swiftclient',
     ],
     entry_points={'console_scripts': [
-        'pywandio-cat = wandio.wandio:main'
+        'pywandio-cat = wandio.opener:main'
     ]}
 )
