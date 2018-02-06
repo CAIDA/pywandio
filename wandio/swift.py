@@ -107,3 +107,10 @@ class SwiftReader(file.GenericReader):
 
     def close(self):
         pass
+
+
+class SwiftWriter(file.GenericWriter):
+
+    def __init__(self, url, options=None):
+        super(SwiftWriter, self).__init__(None)
+        raise NotImplementedError("Swift write support is not yet implemented")

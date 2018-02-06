@@ -18,13 +18,17 @@ class Reader(wandio.file.GenericReader):
 
         # check for the transport types first (HTTP, Swift, Simple)
 
-        # is this Swift (TODO)
+        # is this Swift
         if filename.startswith("swift://"):
             fh = wandio.swift.SwiftReader(self.filename)
 
         # is this simple HTTP ?
         elif urlparse.urlparse(self.filename).netloc:
             fh = wandio.http.HttpReader(self.filename)
+
+        # stdin?
+        elif filename == "-":
+            fh = wandio.file.StdinReader()
 
         # then it must be a simple local file
         else:
@@ -49,20 +53,58 @@ class Reader(wandio.file.GenericReader):
         super(Reader, self).__init__(fh)
 
 
+# TODO: refactor Reader and Writer
+class Writer(wandio.file.GenericWriter):
+
+    def __init__(self, filename):
+        self.filename = filename
+
+        # check for the transport types first (HTTP, Swift, Simple)
+
+        # is this Swift
+        if filename.startswith("swift://"):
+            fh = wandio.swift.SwiftWriter(self.filename)
+
+        # is this simple HTTP ?
+        elif urlparse.urlparse(self.filename).netloc:
+            raise NotImplementedError("Writing to HTTP is not supported")
+
+        # then it must be a simple local file
+        else:
+            fh = wandio.file.SimpleWriter(self.filename)
+
+        assert fh
+
+        # now check the encoding types (gzip, bzip, plain)
+
+        # Gzip?
+        if filename.endswith(".gz"):
+            fh = wandio.compressed.GzipWriter(fh)
+
+        # Bzip2?
+        elif filename.endswith(".bz2"):
+            fh = wandio.compressed.BzipWriter(fh)
+
+        # Plain, leave the transport handle as-is
+        else:
+            pass
+
+        super(Writer, self).__init__(fh)
+
+
 def wandio_open(filename, mode="r"):
     if mode == "r":
         return Reader(filename)
     elif mode == "w":
-        raise NotImplementedError("PyWandio does not currently support writing")
+        return Writer(filename)
     else:
         raise ValueError("Invalid mode. Mode must be either 'r' or 'w'")
 
 
-def main():
+def read_main():
     parser = argparse.ArgumentParser(description="""
     Reads from a file (or files) and writes its contents to stdout. Supports
-    any compression/transport that the dataconcierge.FileOpener supports.
-    E.g. HTTP, Swift, gzip, bzip
+    any compression/transport that pywandio supports. E.g. HTTP, Swift, gzip, bzip
     """)
 
     parser.add_argument('-l', '--use-readline', required=False,
@@ -77,18 +119,34 @@ def main():
 
     opts = vars(parser.parse_args())
 
-    for file in opts['files']:
-        with Reader(file) as fh:
+    for filename in opts['files']:
+        with Reader(filename) as fh:
             if opts['use_next']:
-                sys.stderr.write("Reading using 'next'\n")
+                # sys.stderr.write("Reading using 'next'\n")
                 for line in fh:
                     sys.stdout.write(line)
             elif opts['use_readline']:
-                sys.stderr.write("Reading using 'readline'\n")
+                # sys.stderr.write("Reading using 'readline'\n")
                 line = fh.readline()
                 while line:
                     sys.stdout.write(line)
                     line = fh.readline()
             else:
-                sys.stderr.write("Reading using 'shutil'\n")
+                # sys.stderr.write("Reading using 'shutil'\n")
                 shutil.copyfileobj(fh, sys.stdout)
+
+
+def write_main():
+    parser = argparse.ArgumentParser(description="""
+    Reads from stdin and writes to a file. Supports any compression/transport
+    that pywandio supports. E.g. HTTP, Swift, gzip, bzip
+    """)
+
+    parser.add_argument('file', help='File to write to')
+
+    opts = vars(parser.parse_args())
+
+    with Writer(opts["file"]) as out_fh:
+        with Reader("-") as in_fh:
+            for line in in_fh:
+                out_fh.write(line)

@@ -1,12 +1,13 @@
+import sys
+
+
 class GenericReader(object):
     """
     Wraps a file-like object
     """
 
     def __init__(self, fh):
-        self.closed = False
         self.fh = fh
-        pass
 
     def __enter__(self):
         return self
@@ -30,7 +31,46 @@ class GenericReader(object):
         self.fh.close()
 
 
+class GenericWriter(object):
+    """
+    Wraps a file-like writer object
+    """
+
+    def __init__(self, fh):
+        self.fh = fh
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()
+
+    def flush(self):
+        self.fh.flush()
+
+    def write(self, data):
+        self.fh.write(data)
+
+    def writelines(self, lines):
+        self.fh.writelines(lines)
+
+    def close(self):
+        self.fh.close()
+
+
+class StdinReader(GenericReader):
+
+    def __init__(self):
+        super(StdinReader, self).__init__(sys.stdin)
+
+
 class SimpleReader(GenericReader):
 
     def __init__(self, filename):
         super(SimpleReader, self).__init__(open(filename, "r"))
+
+
+class SimpleWriter(GenericWriter):
+
+    def __init__(self, filename):
+        super(SimpleWriter, self).__init__(open(filename, "w"))
