@@ -1,3 +1,4 @@
+import cStringIO
 import swiftclient
 import swiftclient.service
 import file
@@ -106,11 +107,34 @@ class SwiftReader(file.GenericReader):
         super(SwiftReader, self).__init__(body)
 
     def close(self):
-        pass
+        if self.conn:
+            self.conn.close()
 
 
+# TODO: figure out how to stream to swift rather than buffer all in memory
 class SwiftWriter(file.GenericWriter):
 
+    SEGMENT_SIZE = 1073741824
+    SEGMENT_CONTAINER_TMPL = ".%s-segments"
+
     def __init__(self, url, options=None):
-        super(SwiftWriter, self).__init__(None)
-        raise NotImplementedError("Swift write support is not yet implemented")
+        parsed_url = parse_url(url)
+        self.container = parsed_url["container"]
+        self.object = parsed_url["obj"]
+        self.swift = get_service(options)
+        self.buffer = cStringIO.StringIO()
+        super(SwiftWriter, self).__init__(self.buffer)
+
+    def flush(self):
+        pass
+
+    def close(self):
+        self.buffer.reset()
+        suo = swiftclient.service.SwiftUploadObject(self.buffer, object_name=self.object)
+        results = self.swift.upload(self.container, [suo], options={
+            "segment_size": self.SEGMENT_SIZE,
+            "segment_container": self.SEGMENT_CONTAINER_TMPL % self.container,
+        })
+        for res in results:
+            if not res["success"]:
+                raise res["error"]
