@@ -5,6 +5,9 @@ import file
 
 CHUNK_SIZE = 1 * 1024 * 1024
 
+SEGMENT_SIZE = 1073741824
+SEGMENT_CONTAINER_TMPL = ".%s-segments"
+
 DEFAULT_OPTIONS = {
     "os_auth_url": "https://hermes-auth.caida.org",
     "auth_version": "3",
@@ -82,20 +85,44 @@ def parse_url(url):
     }
 
 
-def list(container=None, options=None):
+def list(container=None, options=None, swift=None):
     """
     Get a list of objects in the account or container
     :param container: container to list (if None, the account will be listed)
     :param options:
+    :param swift:
     :return:
     """
-    swift = get_service(options)
+    if swift is None:
+        swift = get_service(options)
     for page in swift.list(container=container):
         if page["success"]:
             for item in page["listing"]:
                 yield item["name"]
         else:
             raise page["error"]
+
+
+def upload(local_file, container, obj, options=None, swift=None):
+    """
+    Upload a local file (or file-like object) to the given container and object
+    :param local_file: path to local file, or file-like object to upload
+    :param container: container to upload to
+    :param obj: object name to upload to
+    :param options: swift options
+    :param swift: existing swift service instance to use
+    :return:
+    """
+    if swift is None:
+        swift = get_service(options)
+    suo = swiftclient.service.SwiftUploadObject(local_file, object_name=obj)
+    results = swift.upload(container, [suo], options={
+        "segment_size": SEGMENT_SIZE,
+        "segment_container": SEGMENT_CONTAINER_TMPL % container,
+    })
+    for res in results:
+        if not res["success"]:
+            raise res["error"]
 
 
 class SwiftReader(file.GenericReader):
@@ -114,14 +141,11 @@ class SwiftReader(file.GenericReader):
 # TODO: figure out how to stream to swift rather than buffer all in memory
 class SwiftWriter(file.GenericWriter):
 
-    SEGMENT_SIZE = 1073741824
-    SEGMENT_CONTAINER_TMPL = ".%s-segments"
-
     def __init__(self, url, options=None):
         parsed_url = parse_url(url)
         self.container = parsed_url["container"]
         self.object = parsed_url["obj"]
-        self.swift = get_service(options)
+        self.options = options
         self.buffer = cStringIO.StringIO()
         super(SwiftWriter, self).__init__(self.buffer)
 
@@ -130,11 +154,5 @@ class SwiftWriter(file.GenericWriter):
 
     def close(self):
         self.buffer.reset()
-        suo = swiftclient.service.SwiftUploadObject(self.buffer, object_name=self.object)
-        results = self.swift.upload(self.container, [suo], options={
-            "segment_size": self.SEGMENT_SIZE,
-            "segment_container": self.SEGMENT_CONTAINER_TMPL % self.container,
-        })
-        for res in results:
-            if not res["success"]:
-                raise res["error"]
+        upload(self.buffer, container=self.container,
+               obj=self.object, options=self.options)
