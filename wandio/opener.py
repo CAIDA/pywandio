@@ -56,14 +56,14 @@ class Reader(wandio.file.GenericReader):
 # TODO: refactor Reader and Writer
 class Writer(wandio.file.GenericWriter):
 
-    def __init__(self, filename):
+    def __init__(self, filename, options=None):
         self.filename = filename
 
         # check for the transport types first (HTTP, Swift, Simple)
 
         # is this Swift
         if filename.startswith("swift://"):
-            fh = wandio.swift.SwiftWriter(self.filename)
+            fh = wandio.swift.SwiftWriter(self.filename, options=options)
 
         # is this simple HTTP ?
         elif urlparse.urlparse(self.filename).netloc:
