@@ -1,7 +1,7 @@
 import cStringIO
 import swiftclient
 import swiftclient.service
-import file
+import wandio.file
 
 CHUNK_SIZE = 1 * 1024 * 1024
 
@@ -125,7 +125,7 @@ def upload(local_file, container, obj, options=None, swift=None):
             raise res["error"]
 
 
-class SwiftReader(file.GenericReader):
+class SwiftReader(wandio.file.GenericReader):
 
     def __init__(self, url, options=None):
         self.conn = get_connection(options)
@@ -139,7 +139,7 @@ class SwiftReader(file.GenericReader):
 
 
 # TODO: figure out how to stream to swift rather than buffer all in memory
-class SwiftWriter(file.GenericWriter):
+class SwiftWriter(wandio.file.GenericWriter):
 
     def __init__(self, url, options=None):
         parsed_url = parse_url(url)
