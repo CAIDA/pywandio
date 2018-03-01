@@ -7,25 +7,49 @@ class CompressedReader(wandio.file.GenericReader):
 
     BUFLEN = 4096
 
-    def __init__(self, decompressor, child_reader):
-        self.dc = decompressor
+    def __init__(self, child_reader, flush_dc):
         self.child_reader = child_reader
+        self.flush_dc = flush_dc
+        self.dc = None
+        self.c_buf = ""
         self.buf = ""
         self.eof = False
         self._refill()
         super(CompressedReader, self).__init__(child_reader)
 
+    def _get_dc(self):
+        raise NotImplementedError
+
     def _refill(self):
         if self.eof:
             return
-        while len(self.buf) < self.BUFLEN:
-            compressed = self.child_reader.read(self.BUFLEN)
-            res = self.dc.decompress(compressed)
-            # TODO: use a byte array?
-            self.buf += res
-            if len(compressed) < self.BUFLEN:
-                self.eof = True
-                return
+        # keep reading from the child reader until we've decompressed
+        # enough data to fill our buffer
+        while len(self.c_buf) or len(self.buf) < self.BUFLEN:
+            if not len(self.c_buf):
+                # fill our buffer with compressed data
+                self.c_buf = self.child_reader.read(self.BUFLEN)
+                if len(self.c_buf) < self.BUFLEN:
+                    self.eof = True
+            # pass the compressed data to the decompressor, and get back
+            # some decompressed data
+            if self.dc is None:
+                self.dc = self._get_dc()
+            # feed in the data in c_buf to decompress it
+            self.buf += self.dc.decompress(self.c_buf)
+            # if we are EOF on the child reader, then flush the decompressor
+            if self.eof and self.flush_dc:
+                self.buf += self.dc.flush()
+            self.c_buf = self.dc.unused_data
+            if len(self.c_buf):
+                # we have leftover data after compression ended,
+                # so now we need a new decompressor
+                if self.flush_dc:
+                    self.buf += self.dc.flush()
+                self.dc = None
+            # only heed the eof once we've emptied c_buf
+            if not len(self.c_buf) and self.eof:
+                break
 
     def read(self, size=None):
         res = ""
@@ -94,8 +118,10 @@ class CompressedWriter(wandio.file.GenericWriter):
 class GzipReader(CompressedReader):
 
     def __init__(self, child):
-        decompressor = zlib.decompressobj(16+zlib.MAX_WBITS)
-        super(GzipReader, self).__init__(decompressor, child)
+        super(GzipReader, self).__init__(child, flush_dc=True)
+
+    def _get_dc(self):
+        return zlib.decompressobj(16 + zlib.MAX_WBITS)
 
 
 class GzipWriter(CompressedWriter):
@@ -108,8 +134,10 @@ class GzipWriter(CompressedWriter):
 class BzipReader(CompressedReader):
 
     def __init__(self, child):
-        decompressor = bz2.BZ2Decompressor()
-        super(BzipReader, self).__init__(decompressor, child)
+        super(BzipReader, self).__init__(child, flush_dc=False)
+
+    def _get_dc(self):
+        return bz2.BZ2Decompressor()
 
 
 class BzipWriter(CompressedWriter):
