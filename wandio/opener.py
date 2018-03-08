@@ -13,14 +13,14 @@ import wandio.swift
 
 class Reader(wandio.file.GenericReader):
 
-    def __init__(self, filename):
+    def __init__(self, filename, options=None):
         self.filename = filename
 
         # check for the transport types first (HTTP, Swift, Simple)
 
         # is this Swift
         if filename.startswith("swift://"):
-            fh = wandio.swift.SwiftReader(self.filename)
+            fh = wandio.swift.SwiftReader(self.filename, options=options)
 
         # is this simple HTTP ?
         elif urlparse.urlparse(self.filename).netloc:
