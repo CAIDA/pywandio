@@ -125,6 +125,33 @@ def upload(local_file, container, obj, options=None, swift=None):
             raise res["error"]
 
 
+def download(container, obj, local_file=None, local_dir=None,
+             remove_prefix=True, options=None, swift=None):
+    """
+    Download an object from swift to the given local file or directory
+    :param container: container to download from
+    :param obj: object name to download
+    :param local_file: path to local file to download to
+    :param local_dir: path to local directory to download to
+    :param remove_prefix: if local_dir is set, remove the prefix from the object name
+    :param options: swift options
+    :param swift: existing swift service instance to use
+    :return:
+    """
+    if swift is None:
+        swift = get_service(options)
+    if local_file is not None:
+        opts = {"out_file": local_file}
+    elif local_dir is not None:
+        opts = {"out_directory": local_dir, "remove_prefix": remove_prefix}
+    else:
+        raise ValueError("Either localfile or localdir argument must be given")
+    results = swift.download(container, [obj], options=opts)
+    for res in results:
+        if not res["success"]:
+            raise res["error"]
+
+
 class SwiftReader(wandio.file.GenericReader):
 
     def __init__(self, url, options=None):
