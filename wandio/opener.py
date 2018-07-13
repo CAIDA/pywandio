@@ -101,6 +101,30 @@ def wandio_open(filename, mode="r"):
         raise ValueError("Invalid mode. Mode must be either 'r' or 'w'")
 
 
+def wandio_stat(filename):
+    # currently we support a *very* limited set stat fields:
+    # - mtime (Last-Modified for HTTP)
+    # - size
+    # is this Swift
+    if filename.startswith("swift://"):
+        # TODO
+        raise NotImplementedError("Stat not yet supported for Swift files")
+
+    # is this simple HTTP ?
+    elif urlparse.urlparse(filename).netloc:
+        statfunc = wandio.http.http_stat
+
+    # stdin?
+    elif filename == "-":
+        raise NotImplementedError("Cannot perform stat operation on STDIN")
+
+    # then it must be a simple local file
+    else:
+        statfunc = wandio.file.file_stat
+
+    return statfunc(filename)
+
+
 def read_main():
     parser = argparse.ArgumentParser(description="""
     Reads from a file (or files) and writes its contents to stdout. Supports
@@ -150,3 +174,17 @@ def write_main():
         with Reader("-") as in_fh:
             for line in in_fh:
                 out_fh.write(line)
+
+
+def stat_main():
+    parser = argparse.ArgumentParser(description="""
+    Obtains and prints statistics about the given file (either local or remote)
+    """)
+
+    parser.add_argument('file', help='File to obtain statistics for')
+
+    opts = vars(parser.parse_args())
+
+    s = wandio_stat(opts["file"])
+    print "mtime: %s" % s["mtime"]
+    print "size: %s" % s["size"]

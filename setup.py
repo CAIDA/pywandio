@@ -16,5 +16,6 @@ setuptools.setup(
     entry_points={'console_scripts': [
         'pywandio-cat = wandio.opener:read_main',
         'pywandio-write = wandio.opener:write_main',
+        'pywandio-stat = wandio.opener:stat_main'
     ]}
 )
