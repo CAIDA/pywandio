@@ -1,4 +1,14 @@
+import os
+import stat
 import sys
+
+
+def file_stat(filename):
+    sr = os.stat(filename)
+    return {
+        "size": sr[stat.ST_SIZE],
+        "mtime": sr[stat.ST_MTIME],
+    }
 
 
 class GenericReader(object):
