@@ -64,7 +64,7 @@ class CompressedReader(wandio.file.GenericReader):
         assert(size is None or len(res) == size or len(self.buf) == 0)
         return res
 
-    def next(self):
+    def __next__(self):
         line = self.readline()
         if not line:
             assert(not len(self.buf) and self.eof)

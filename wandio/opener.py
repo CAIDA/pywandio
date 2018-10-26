@@ -3,7 +3,7 @@
 import argparse
 import shutil
 import sys
-import urlparse
+import urllib.parse
 
 import wandio.compressed
 import wandio.file
@@ -23,7 +23,7 @@ class Reader(wandio.file.GenericReader):
             fh = wandio.swift.SwiftReader(self.filename, options=options)
 
         # is this simple HTTP ?
-        elif urlparse.urlparse(self.filename).netloc:
+        elif urllib.parse.urlparse(self.filename).netloc:
             fh = wandio.http.HttpReader(self.filename)
 
         # stdin?
@@ -66,7 +66,7 @@ class Writer(wandio.file.GenericWriter):
             fh = wandio.swift.SwiftWriter(self.filename, options=options)
 
         # is this simple HTTP ?
-        elif urlparse.urlparse(self.filename).netloc:
+        elif urllib.parse.urlparse(self.filename).netloc:
             raise NotImplementedError("Writing to HTTP is not supported")
 
         # then it must be a simple local file
@@ -111,7 +111,7 @@ def wandio_stat(filename):
         raise NotImplementedError("Stat not yet supported for Swift files")
 
     # is this simple HTTP ?
-    elif urlparse.urlparse(filename).netloc:
+    elif urllib.parse.urlparse(filename).netloc:
         statfunc = wandio.http.http_stat
 
     # stdin?
@@ -186,5 +186,5 @@ def stat_main():
     opts = vars(parser.parse_args())
 
     s = wandio_stat(opts["file"])
-    print "mtime: %s" % s["mtime"]
-    print "size: %s" % s["size"]
+    print("mtime: %s" % s["mtime"])
+    print("size: %s" % s["size"])

@@ -1,12 +1,12 @@
 import email
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import wandio.file
 
 
 def http_stat(filename):
-    request = urllib2.Request(filename)
+    request = urllib.request.Request(filename)
     request.get_method = lambda: 'HEAD'
-    response = urllib2.urlopen(request)
+    response = urllib.request.urlopen(request)
     hdrs = response.info()
 
     # Last Modified time
@@ -31,4 +31,4 @@ class HttpReader(wandio.file.GenericReader):
 
     def __init__(self, url):
         self.url = url
-        super(HttpReader, self).__init__(urllib2.urlopen(self.url))
+        super(HttpReader, self).__init__(urllib.request.urlopen(self.url))
