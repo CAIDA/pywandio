@@ -103,6 +103,29 @@ def list(container=None, options=None, swift=None):
             raise page["error"]
 
 
+def stat(container=None, objects=None, options=None, swift=None):
+    """
+    Get stats for a list of objects in the account or container
+    :param container: container to stat (if None, the account will be listed)
+    :param objects: objects to get stats for (if None, the container will be listed)
+    :param options:
+    :param swift:
+    :return:
+    """
+    if swift is None:
+        swift = get_service(options)
+    stat_res = swift.stat(container=container, objects=objects)
+    if objects is None:
+        if not stat_res["success"]:
+            raise stat_res["error"]
+        yield stat_res
+    else:
+        for obj_stat in stat_res:
+            if not obj_stat["success"]:
+                raise obj_stat["error"]
+            yield obj_stat
+
+
 def upload(local_file, container, obj, options=None, swift=None):
     """
     Upload a local file (or file-like object) to the given container and object
