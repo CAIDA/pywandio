@@ -145,7 +145,13 @@ def upload(local_file, container, obj, options=None, swift=None):
     })
     for res in results:
         if not res["success"]:
-            raise res["error"]
+            # Failing to create a container is a warning, not an error -- Shane
+            # Ref: https://github.com/openstack/python-swiftclient/blob/master/swiftclient/shell.py
+            # inside function st_upload()
+            if 'action' in res and res['action'] == "create_container":
+                continue
+            else:
+                raise res["error"]
 
 
 def download(container, obj, local_file=None, local_dir=None,
