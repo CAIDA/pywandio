@@ -181,6 +181,23 @@ def download(container, obj, local_file=None, local_dir=None,
             raise res["error"]
 
 
+def delete(container=None, objects=None, options=None, swift=None):
+    """
+    Delete a container or a list of objects in the given container
+    :param container: container to delete (from)
+    :param objects: objects to delete (if None, the container will be deleted)
+    :param options:
+    :param swift:
+    :return:
+    """
+    if swift is None:
+        swift = get_service(options)
+    res_iter = swift.delete(container=container, objects=objects)
+    for res in res_iter:
+        if not res["success"]:
+            raise res["error"]
+
+
 class SwiftReader(wandio.file.GenericReader):
 
     def __init__(self, url, options=None):
