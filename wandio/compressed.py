@@ -11,8 +11,8 @@ class CompressedReader(wandio.file.GenericReader):
         self.child_reader = child_reader
         self.flush_dc = flush_dc
         self.dc = None
-        self.c_buf = ""
-        self.buf = ""
+        self.c_buf = b""
+        self.buf = b""
         self.eof = False
         self._refill()
         super(CompressedReader, self).__init__(child_reader)
@@ -72,12 +72,12 @@ class CompressedReader(wandio.file.GenericReader):
         return line
 
     def readline(self):
-        res = ""
-        while not len(res) or res[-1] != "\n":
-            idx = self.buf.find("\n")
+        res = b""
+        while not len(res) or not res.endswith(b"\n"):
+            idx = self.buf.find(b"\n")
             if idx == -1:
                 res += self.buf
-                self.buf = ""
+                self.buf = b""
                 self._refill()
             else:
                 res += self.buf[0:idx+1]
@@ -86,7 +86,7 @@ class CompressedReader(wandio.file.GenericReader):
                 break
         if not len(res) and not len(self.buf) and self.eof:
             return None
-        return res
+        return res.decode()
 
 
 class CompressedWriter(wandio.file.GenericWriter):
