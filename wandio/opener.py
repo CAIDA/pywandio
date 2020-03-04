@@ -157,7 +157,7 @@ def read_main():
                     line = fh.readline()
             else:
                 # sys.stderr.write("Reading using 'shutil'\n")
-                shutil.copyfileobj(fh, sys.stdout)
+                shutil.copyfileobj(fh, sys.stdout.buffer)
 
 
 def write_main():
