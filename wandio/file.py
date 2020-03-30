@@ -31,6 +31,9 @@ class GenericReader(object):
     def __next__(self):
         return next(self.fh)
 
+    def next(self):
+        return self.__next__()
+
     def read(self, *args):
         return self.fh.read(*args)
 
