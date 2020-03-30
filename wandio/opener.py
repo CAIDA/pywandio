@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
+import os
 import shutil
 import sys
 import urllib.parse
@@ -157,7 +158,14 @@ def read_main():
                     line = fh.readline()
             else:
                 # sys.stderr.write("Reading using 'shutil'\n")
-                shutil.copyfileobj(fh, sys.stdout.buffer)
+                try:
+                    shutil.copyfileobj(fh, sys.stdout.buffer)
+                except BrokenPipeError:
+                    # See "Note on SIGPIPE" here:
+                    # https://docs.python.org/3/library/signal.html
+                    devnull = os.open(os.devnull, os.O_WRONLY)
+                    os.dup2(devnull, sys.stdout.fileno())
+                    sys.exit(1)
 
 
 def write_main():
