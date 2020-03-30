@@ -1,8 +1,15 @@
 #!/usr/bin/env python
 
+
 import argparse
+import os, sys, errno
 import shutil
-import sys
+import socket
+
+# for urllib
+if (sys.version_info < (3, 0)):
+    from future.standard_library import install_aliases
+    install_aliases()
 import urllib.parse
 
 import wandio.compressed
@@ -157,7 +164,24 @@ def read_main():
                     line = fh.readline()
             else:
                 # sys.stderr.write("Reading using 'shutil'\n")
-                shutil.copyfileobj(fh, sys.stdout.buffer)
+
+                if (sys.version_info > (3, 0)):
+                    try:
+                        shutil.copyfileobj(fh, sys.stdout.buffer)
+                    except BrokenPipeError:
+                        devnull = os.open(os.devnull, os.O_WRONLY)
+                        os.dup2(devnull, sys.stdout.fileno())
+                        sys.exit(1)
+                else:
+                    try:
+                        shutil.copyfileobj(fh, sys.stdout)
+                    except IOError as e:
+                        if e.errno != errno.EPIPE:
+                            ### Handle error ###
+                            raise 2
+                        devnull = os.open(os.devnull, os.O_WRONLY)
+                        os.dup2(devnull, sys.stdout.fileno())
+                        sys.exit(1)
 
 
 def write_main():

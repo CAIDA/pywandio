@@ -1,6 +1,14 @@
+import sys
+
 import email
-import urllib.request, urllib.error, urllib.parse
 import wandio.file
+
+# python 2/3 compatible urllib imports
+if (sys.version_info < (3, 0)):
+    from future.standard_library import install_aliases
+    install_aliases()
+import urllib.request, urllib.error, urllib.parse
+
 
 
 def http_stat(filename):
