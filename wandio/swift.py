@@ -1,4 +1,4 @@
-import cStringIO
+import io
 import swiftclient
 import swiftclient.service
 import wandio.file
@@ -219,7 +219,7 @@ class SwiftWriter(wandio.file.GenericWriter):
         self.container = parsed_url["container"]
         self.object = parsed_url["obj"]
         self.options = options
-        self.buffer = cStringIO.StringIO()
+        self.buffer = io.StringIO()
         super(SwiftWriter, self).__init__(self.buffer)
 
     def flush(self):

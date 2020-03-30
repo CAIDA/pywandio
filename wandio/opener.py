@@ -1,9 +1,16 @@
 #!/usr/bin/env python
 
 import argparse
+import os, sys, errno
 import shutil
-import sys
-import urlparse
+import socket
+
+# urllib import compatible with both python2 and python3
+# https://python-future.org/compatible_idioms.html#urllib-module
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 
 import wandio.compressed
 import wandio.file
@@ -23,7 +30,7 @@ class Reader(wandio.file.GenericReader):
             fh = wandio.swift.SwiftReader(self.filename, options=options)
 
         # is this simple HTTP ?
-        elif urlparse.urlparse(self.filename).netloc:
+        elif urlparse(self.filename).netloc:
             fh = wandio.http.HttpReader(self.filename)
 
         # stdin?
@@ -66,7 +73,7 @@ class Writer(wandio.file.GenericWriter):
             fh = wandio.swift.SwiftWriter(self.filename, options=options)
 
         # is this simple HTTP ?
-        elif urlparse.urlparse(self.filename).netloc:
+        elif urlparse(self.filename).netloc:
             raise NotImplementedError("Writing to HTTP is not supported")
 
         # then it must be a simple local file
@@ -111,7 +118,7 @@ def wandio_stat(filename):
         raise NotImplementedError("Stat not yet supported for Swift files")
 
     # is this simple HTTP ?
-    elif urlparse.urlparse(filename).netloc:
+    elif urlparse(filename).netloc:
         statfunc = wandio.http.http_stat
 
     # stdin?
@@ -157,8 +164,23 @@ def read_main():
                     line = fh.readline()
             else:
                 # sys.stderr.write("Reading using 'shutil'\n")
-                shutil.copyfileobj(fh, sys.stdout)
-
+                if (sys.version_info > (3, 0)):
+                    try:
+                        shutil.copyfileobj(fh, sys.stdout.buffer)
+                    except BrokenPipeError:
+                        devnull = os.open(os.devnull, os.O_WRONLY)
+                        os.dup2(devnull, sys.stdout.fileno())
+                        sys.exit(1)
+                else:
+                    try:
+                        shutil.copyfileobj(fh, sys.stdout)
+                    except IOError as e:
+                        if e.errno != errno.EPIPE:
+                            # if it is not a BrokenPipeError, raise the error.
+                            raise e
+                        devnull = os.open(os.devnull, os.O_WRONLY)
+                        os.dup2(devnull, sys.stdout.fileno())
+                        sys.exit(1)
 
 def write_main():
     parser = argparse.ArgumentParser(description="""
@@ -186,5 +208,5 @@ def stat_main():
     opts = vars(parser.parse_args())
 
     s = wandio_stat(opts["file"])
-    print "mtime: %s" % s["mtime"]
-    print "size: %s" % s["size"]
+    print("mtime: %s" % s["mtime"])
+    print("size: %s" % s["size"])

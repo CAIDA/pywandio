@@ -1,12 +1,19 @@
+import sys
+
 import email
-import urllib2
 import wandio.file
 
+# urllib import compatible with both python2 and python3
+# https://python-future.org/compatible_idioms.html#urllib-module
+try:
+    from urllib.request import urlopen, Request
+except ImportError:
+    from urllib2 import urlopen, Request
 
 def http_stat(filename):
-    request = urllib2.Request(filename)
+    request = Request(filename)
     request.get_method = lambda: 'HEAD'
-    response = urllib2.urlopen(request)
+    response = urlopen(request)
     hdrs = response.info()
 
     # Last Modified time
@@ -31,4 +38,4 @@ class HttpReader(wandio.file.GenericReader):
 
     def __init__(self, url):
         self.url = url
-        super(HttpReader, self).__init__(urllib2.urlopen(self.url))
+        super(HttpReader, self).__init__(urlopen(self.url))
