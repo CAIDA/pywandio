@@ -52,7 +52,7 @@ class CompressedReader(wandio.file.GenericReader):
                 break
 
     def read(self, size=None):
-        res = ""
+        res = b""
         while ((not self.eof) or len(self.buf)) and (size is None or len(res) < size):
             if not len(self.buf):
                 self._refill()
