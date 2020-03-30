@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 import argparse
 import os, sys, errno
 import shutil
@@ -164,7 +163,6 @@ def read_main():
                     line = fh.readline()
             else:
                 # sys.stderr.write("Reading using 'shutil'\n")
-
                 if (sys.version_info > (3, 0)):
                     try:
                         shutil.copyfileobj(fh, sys.stdout.buffer)
@@ -182,7 +180,6 @@ def read_main():
                         devnull = os.open(os.devnull, os.O_WRONLY)
                         os.dup2(devnull, sys.stdout.fileno())
                         sys.exit(1)
-
 
 def write_main():
     parser = argparse.ArgumentParser(description="""
