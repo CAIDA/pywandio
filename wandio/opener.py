@@ -5,11 +5,12 @@ import os, sys, errno
 import shutil
 import socket
 
-# for urllib
-if (sys.version_info < (3, 0)):
-    from future.standard_library import install_aliases
-    install_aliases()
-import urllib.parse
+# urllib import compatible with both python2 and python3
+# https://python-future.org/compatible_idioms.html#urllib-module
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 
 import wandio.compressed
 import wandio.file
@@ -29,7 +30,7 @@ class Reader(wandio.file.GenericReader):
             fh = wandio.swift.SwiftReader(self.filename, options=options)
 
         # is this simple HTTP ?
-        elif urllib.parse.urlparse(self.filename).netloc:
+        elif urlparse(self.filename).netloc:
             fh = wandio.http.HttpReader(self.filename)
 
         # stdin?
@@ -72,7 +73,7 @@ class Writer(wandio.file.GenericWriter):
             fh = wandio.swift.SwiftWriter(self.filename, options=options)
 
         # is this simple HTTP ?
-        elif urllib.parse.urlparse(self.filename).netloc:
+        elif urlparse(self.filename).netloc:
             raise NotImplementedError("Writing to HTTP is not supported")
 
         # then it must be a simple local file
@@ -117,7 +118,7 @@ def wandio_stat(filename):
         raise NotImplementedError("Stat not yet supported for Swift files")
 
     # is this simple HTTP ?
-    elif urllib.parse.urlparse(filename).netloc:
+    elif urlparse(filename).netloc:
         statfunc = wandio.http.http_stat
 
     # stdin?
