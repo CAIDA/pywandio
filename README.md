@@ -4,14 +4,11 @@ Python bindings for libwandio (https://github.com/wanduow/wandio)
 ## Usage
 
 ```python
-
+# this script should work with both python2 and python3
 import wandio
 
-files = ['./local.txt',
-         './local.txt.gz',
-         './local.txt.bz2',
+files = [
          'http://data.caida.org/datasets/as-relationships/README.txt',
-         'http://loki.caida.org:2243/data/external/whois-database-dumps/20140301.ppdc-ases.txt.gz',
          'http://loki.caida.org:2243/data/external/as-rank-ribs/19980101/19980101.as-rel.txt.bz2'
          ]
 for filename in files:
@@ -27,6 +24,7 @@ for filename in files:
         # print the number of lines and words in file
         print(filename)
         print(line_count, word_count)
-    except FileNotFoundError as err:
-        print(err)
+    except IOError as err:
+        print(filename)
+        raise err
 ```
