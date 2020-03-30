@@ -177,8 +177,8 @@ def read_main():
                         shutil.copyfileobj(fh, sys.stdout)
                     except IOError as e:
                         if e.errno != errno.EPIPE:
-                            ### Handle error ###
-                            raise 2
+                            # if it is not a BrokenPipeError, raise the error.
+                            raise e
                         devnull = os.open(os.devnull, os.O_WRONLY)
                         os.dup2(devnull, sys.stdout.fileno())
                         sys.exit(1)
