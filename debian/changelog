@@ -1,0 +1,5 @@
+pywandio (0.2.0) unstable; urgency=medium
+
+  * python3 compatible
+
+ -- Alistair King <software@caida.org>  Mon, 30 Mar 2020 16:00:00 -0800

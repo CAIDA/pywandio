@@ -1,0 +1,20 @@
+Source: pywandio
+Maintainer: CAIDA Software Maintainer <software@caida.org>
+Section: python
+Priority: optional
+Build-Depends: dh-python, debhelper (>= 9),
+  python-setuptools, python3-setuptools, python-all-dev, python3-all-dev,
+  python-keystoneclient, python3-keystoneclient,
+  python-swiftclient, python3-swiftclient,
+Standards-Version: 3.9.6
+Homepage: https://github.com/CAIDA/pywandio
+
+Package: python-pywandio
+Architecture: any
+Depends: ${misc:Depends}, ${python:Depends}, ${shlibs:Depends}
+Description: Python interface to libwandio
+
+Package: python3-pywandio
+Architecture: any
+Depends: ${misc:Depends}, ${python3:Depends}, ${shlibs:Depends}
+Description: Python3 interface to libwandio
