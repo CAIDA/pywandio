@@ -7,7 +7,7 @@ setuptools.setup(
     version='0.2',
     description='High-level file IO library',
     url='https://github.com/CAIDA/pywandio',
-    author='Alistair King, Mingwei Zhang',
+    author='Alistair King, Chiara Orsini, Mingwei Zhang',
     author_email='software@caida.org',
     packages=setuptools.find_packages(),
     install_requires=[
