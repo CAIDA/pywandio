@@ -10,6 +10,7 @@ try:
 except ImportError:
     from urllib2 import urlopen, Request
 
+
 def http_stat(filename):
     request = Request(filename)
     request.get_method = lambda: 'HEAD'
@@ -39,3 +40,6 @@ class HttpReader(wandio.file.GenericReader):
     def __init__(self, url):
         self.url = url
         super(HttpReader, self).__init__(urlopen(self.url))
+
+    def __next__(self):
+        return next(self.fh).decode()

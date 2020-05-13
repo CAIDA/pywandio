@@ -29,11 +29,7 @@ class GenericReader(object):
         return self
 
     def __next__(self):
-        res = next(self.fh)
-        if isinstance(res, bytes):
-            # try decode bytes to string
-            res = res.decode()
-        return res
+        return next(self.fh)
 
     def next(self):
         return self.__next__()
