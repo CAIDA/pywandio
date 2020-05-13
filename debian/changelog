@@ -1,3 +1,9 @@
+pywandio (0.2.1) unstable; urgency=medium
+
+  * bugfix: decode read bytes to str for GenericReader
+
+ -- Alistair King <software@caida.org>  Wed, 13 May 2020 16:00:00 -0800
+
 pywandio (0.2.0) unstable; urgency=medium
 
   * python3 compatible
