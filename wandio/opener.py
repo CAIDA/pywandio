@@ -99,9 +99,12 @@ class Writer(wandio.file.GenericWriter):
         super(Writer, self).__init__(fh)
 
 
-def wandio_open(filename, mode="r"):
+def wandio_open(filename, mode="r", decode=True, encoding="utf-8"):
     if mode == "r":
-        return Reader(filename)
+        reader = Reader(filename)
+        reader.fh.decode = decode
+        reader.fh.encoding = encoding
+        return reader
     elif mode == "w":
         return Writer(filename)
     else:

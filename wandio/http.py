@@ -42,4 +42,8 @@ class HttpReader(wandio.file.GenericReader):
         super(HttpReader, self).__init__(urlopen(self.url))
 
     def __next__(self):
-        return next(self.fh).decode("utf-8")
+        res = next(self.fh)
+        if self.decode:
+            return res.decode(self.encoding)
+        else:
+            return res

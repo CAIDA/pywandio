@@ -86,7 +86,10 @@ class CompressedReader(wandio.file.GenericReader):
                 break
         if not len(res) and not len(self.buf) and self.eof:
             return None
-        return res.decode("utf-8")
+        if self.decode:
+            return res.decode(self.encoding)
+        else:
+            return res
 
 
 class CompressedWriter(wandio.file.GenericWriter):

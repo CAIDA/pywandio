@@ -16,8 +16,10 @@ class GenericReader(object):
     Wraps a file-like object
     """
 
-    def __init__(self, fh):
+    def __init__(self, fh, decode=True, encoding="utf-8"):
         self.fh = fh
+        self.decode = decode
+        self.encoding = encoding
 
     def __enter__(self):
         return self
