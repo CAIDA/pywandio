@@ -11,7 +11,8 @@ setuptools.setup(
     author_email='bgpstream-info@caida.org',
     packages=setuptools.find_packages(),
     install_requires=[
-        'python-keystoneclient', 'python-swiftclient',
+        'python-keystoneclient=3.22.0',
+        'python-swiftclient',
     ],
     entry_points={'console_scripts': [
         'pywandio-cat = wandio.opener:read_main',
