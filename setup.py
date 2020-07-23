@@ -11,7 +11,7 @@ setuptools.setup(
     author_email='bgpstream-info@caida.org',
     packages=setuptools.find_packages(),
     install_requires=[
-        'python-keystoneclient=3.22.0',
+        'python-keystoneclient==3.22.0',
         'python-swiftclient',
     ],
     entry_points={'console_scripts': [
