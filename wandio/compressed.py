@@ -102,6 +102,8 @@ class CompressedWriter(wandio.file.GenericWriter):
         self.fh.flush()
 
     def write(self, data):
+        if isinstance(data, str):
+            data = data.encode()
         cd = self.compressor.compress(data)
         # cd is partial compressed data
         self.fh.write(cd)
