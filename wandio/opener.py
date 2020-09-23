@@ -70,7 +70,10 @@ class Writer(wandio.file.GenericWriter):
 
         # is this Swift
         if filename.startswith("swift://"):
-            fh = wandio.swift.SwiftWriter(self.filename, options=options)
+            use_bytes_io = False
+            if filename.endswith(".gz") or filename.endswith(".bz2"):
+                use_bytes_io = True
+            fh = wandio.swift.SwiftWriter(self.filename, options=options, use_bytes_io=use_bytes_io)
 
         # is this simple HTTP ?
         elif urlparse(self.filename).netloc:
