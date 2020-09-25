@@ -14,7 +14,7 @@ except ImportError:
 
 import wandio.compressed
 import wandio.file
-import wandio.http
+import wandio.wand_http
 import wandio.swift
 
 
@@ -22,6 +22,8 @@ class Reader(wandio.file.GenericReader):
 
     def __init__(self, filename, options=None):
         self.filename = filename
+
+        is_binary_file = True if filename.endswith(".gz") or filename.endswith(".bz2") else False
 
         # check for the transport types first (HTTP, Swift, Simple)
 
@@ -31,7 +33,7 @@ class Reader(wandio.file.GenericReader):
 
         # is this simple HTTP ?
         elif urlparse(self.filename).netloc:
-            fh = wandio.http.HttpReader(self.filename)
+            fh = wandio.wand_http.HttpReader(self.filename)
 
         # stdin?
         elif filename == "-":
@@ -39,7 +41,7 @@ class Reader(wandio.file.GenericReader):
 
         # then it must be a simple local file
         else:
-            fh = wandio.file.SimpleReader(self.filename)
+            fh = wandio.file.SimpleReader(self.filename, is_binary=is_binary_file)
 
         assert fh
 
@@ -66,14 +68,12 @@ class Writer(wandio.file.GenericWriter):
     def __init__(self, filename, options=None):
         self.filename = filename
 
-        # check for the transport types first (HTTP, Swift, Simple)
+        is_binary_file = True if filename.endswith(".gz") or filename.endswith(".bz2") else False
 
+        # check for the transport types first (HTTP, Swift, Simple)
         # is this Swift
         if filename.startswith("swift://"):
-            use_bytes_io = False
-            if filename.endswith(".gz") or filename.endswith(".bz2"):
-                use_bytes_io = True
-            fh = wandio.swift.SwiftWriter(self.filename, options=options, use_bytes_io=use_bytes_io)
+            fh = wandio.swift.SwiftWriter(self.filename, options=options, use_bytes_io=is_binary_file)
 
         # is this simple HTTP ?
         elif urlparse(self.filename).netloc:
@@ -81,7 +81,7 @@ class Writer(wandio.file.GenericWriter):
 
         # then it must be a simple local file
         else:
-            fh = wandio.file.SimpleWriter(self.filename)
+            fh = wandio.file.SimpleWriter(self.filename, is_binary=is_binary_file)
 
         assert fh
 
@@ -122,7 +122,7 @@ def wandio_stat(filename):
 
     # is this simple HTTP ?
     elif urlparse(filename).netloc:
-        statfunc = wandio.http.http_stat
+        statfunc = wandio.wand_http.http_stat
 
     # stdin?
     elif filename == "-":

@@ -79,11 +79,11 @@ class StdinReader(GenericReader):
 
 class SimpleReader(GenericReader):
 
-    def __init__(self, filename):
-        super(SimpleReader, self).__init__(open(filename, "r"))
+    def __init__(self, filename, is_binary=False):
+        super(SimpleReader, self).__init__(open(filename, "rb" if is_binary else "r"))
 
 
 class SimpleWriter(GenericWriter):
 
-    def __init__(self, filename):
-        super(SimpleWriter, self).__init__(open(filename, "w"))
+    def __init__(self, filename, is_binary=False):
+        super(SimpleWriter, self).__init__(open(filename, "wb" if is_binary else "w"))
