@@ -102,11 +102,11 @@ class Writer(wandio.file.GenericWriter):
         super(Writer, self).__init__(fh)
 
 
-def wandio_open(filename, mode="r"):
+def wandio_open(filename, mode="r", options=None):
     if mode == "r":
-        return Reader(filename)
+        return Reader(filename, options)
     elif mode == "w":
-        return Writer(filename)
+        return Writer(filename, options)
     else:
         raise ValueError("Invalid mode. Mode must be either 'r' or 'w'")
 
