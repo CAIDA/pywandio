@@ -105,7 +105,7 @@ def wandio_open(filename, mode="r"):
     elif mode == "w":
         return Writer(filename)
     else:
-        raise ValueError("Invalid mode. Mode must be either 'r' or 'w'")
+        raise ValueError("Invalid mode. Mode must be either 'r', 'rb', or 'w'")
 
 
 def wandio_stat(filename):
