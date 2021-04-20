@@ -20,7 +20,7 @@ import wandio.swift
 
 class Reader(wandio.file.GenericReader):
 
-    def __init__(self, filename, options=None):
+    def __init__(self, filename, mode='r', options=None):
         self.filename = filename
 
         # check for the transport types first (HTTP, Swift, Simple)
@@ -39,7 +39,7 @@ class Reader(wandio.file.GenericReader):
 
         # then it must be a simple local file
         else:
-            fh = wandio.file.SimpleReader(self.filename)
+            fh = wandio.file.SimpleReader(self.filename, mode)
 
         assert fh
 
@@ -100,8 +100,8 @@ class Writer(wandio.file.GenericWriter):
 
 
 def wandio_open(filename, mode="r"):
-    if mode == "r":
-        return Reader(filename)
+    if mode == "r" or mode == "rb":
+        return Reader(filename, mode=mode)
     elif mode == "w":
         return Writer(filename)
     else:
@@ -147,11 +147,14 @@ def read_main():
                         help="Force use of next (for testing)")
 
     parser.add_argument('files', nargs='+', help='Files to read from')
+    parser.add_argument('-m', '--file-mode', required=False,
+                        type=str, default='r',
+                        help="Open files using this file mode")
 
     opts = vars(parser.parse_args())
 
     for filename in opts['files']:
-        with Reader(filename) as fh:
+        with Reader(filename, mode=opts['file_mode']) as fh:
             if opts['use_next']:
                 # sys.stderr.write("Reading using 'next'\n")
                 for line in fh:
