@@ -214,18 +214,21 @@ class SwiftReader(wandio.file.GenericReader):
 # TODO: figure out how to stream to swift rather than buffer all in memory
 class SwiftWriter(wandio.file.GenericWriter):
 
-    def __init__(self, url, options=None):
+    def __init__(self, url, options=None, use_bytes_io=False):
         parsed_url = parse_url(url)
         self.container = parsed_url["container"]
         self.object = parsed_url["obj"]
         self.options = options
-        self.buffer = io.StringIO()
+        if use_bytes_io:
+            self.buffer = io.BytesIO()
+        else:
+            self.buffer = io.StringIO()
         super(SwiftWriter, self).__init__(self.buffer)
 
     def flush(self):
         pass
 
     def close(self):
-        self.buffer.reset()
+        self.buffer.seek(0)
         upload(self.buffer, container=self.container,
                obj=self.object, options=self.options)

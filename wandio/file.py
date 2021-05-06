@@ -79,11 +79,13 @@ class StdinReader(GenericReader):
 
 class SimpleReader(GenericReader):
 
-    def __init__(self, filename):
-        super(SimpleReader, self).__init__(open(filename, "r"))
+    def __init__(self, filename, mode="r"):
+        assert mode in ["r", "rb"]
+        super(SimpleReader, self).__init__(open(filename, mode))
 
 
 class SimpleWriter(GenericWriter):
 
-    def __init__(self, filename):
-        super(SimpleWriter, self).__init__(open(filename, "w"))
+    def __init__(self, filename, mode="w"):
+        assert mode in ["w", "wb"]
+        super(SimpleWriter, self).__init__(open(filename, mode))
