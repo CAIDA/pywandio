@@ -4,13 +4,14 @@ import setuptools
 
 setuptools.setup(
     name='pywandio',
-    version='0.2.5',
+    version='0.3.0',
     description='High-level file IO library',
     url='https://github.com/CAIDA/pywandio',
     author='Alistair King, Chiara Orsini, Mingwei Zhang',
     author_email='software@caida.org',
     packages=setuptools.find_packages(),
     install_requires=[
+        'python-dotenv',
         'python-keystoneclient',
         'python-swiftclient',
     ],
