@@ -4,7 +4,7 @@ import setuptools
 
 setuptools.setup(
     name='pywandio',
-    version='0.2.5',
+    version='0.3.0',
     description='High-level file IO library',
     url='https://github.com/CAIDA/pywandio',
     author='Alistair King, Chiara Orsini, Mingwei Zhang',
